@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Build docker Image') {
+            steps {
+                script {
+                    // Sestav Docker image
+                    echo "INFO: Docker image built"
+                    sh '''
+                            echo "AUTH_URL=http://uniedu.cz:3001/auth" > .env
+                            echo "LIB_URL=http://uniedu.cz:3002/api/library" >> .env
+                            echo "ATTENDANCE_URL=http://uniedu.cz:3003/api" >> .env
+                        '''
+                }
+            }
+        }
+        
+        stage('Deploy Image') {
+            steps {
+                script {
+                    echo "INFO: Deploying Docker image"
+                    // Deploy Docker image
+                    sh 'docker-compose up -d --build'
+                    echo "INFO: Docker image deployed"
+                }
+            }
+        }
+    }
+}

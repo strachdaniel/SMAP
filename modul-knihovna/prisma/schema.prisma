@@ -1,0 +1,58 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-1.1.x","debian-openssl-1.1.x"]
+}
+
+model Reader {
+    reader_id Int @id @unique @default(autoincrement())
+    user_id   Int
+}
+
+model Borrow {
+    borrow_id          Int       @id @unique @default(autoincrement())
+    reader_id   Int
+    book_id     Int
+    borrowed_at DateTime  @default(now())
+    returned_at DateTime?
+}
+
+model Book {
+    book_id        Int          @id @unique @default(autoincrement())
+    isbn           String      
+    title          String
+    author         String
+    category_id    Int?
+    created_at     DateTime     @default(now())
+    subcategory_id Int?
+    category       Category?     @relation(fields: [category_id], references: [category_id])
+    subcategory    Subcategory? @relation(fields: [subcategory_id], references: [subcategory_id])
+}
+
+model Category {
+    category_id    Int              @id @unique @default(autoincrement())
+    name           String           @unique
+    description    String
+    books          Book[]
+    PairedCategory PairedCategory[]
+}
+
+model PairedCategory {
+    paired_category_id  Int         @id @unique @default(autoincrement())
+    category_id         Int
+    subcategory_id      Int
+    category            Category    @relation(fields: [category_id], references: [category_id])
+    subcategory         Subcategory @relation(fields: [subcategory_id], references: [subcategory_id])
+}
+
+model Subcategory {
+    subcategory_id             Int              @id @unique @default(autoincrement())
+    name           String           @unique
+    description    String
+    books          Book[]
+    PairedCategory PairedCategory[]
+}

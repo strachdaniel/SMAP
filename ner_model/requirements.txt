@@ -1,0 +1,8 @@
+tensorflow
+opencv-python
+pillow
+keras-ocr
+pytesseract
+matplotlib
+numpy
+pdf2image

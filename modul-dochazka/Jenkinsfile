@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Build docker Image') {
+            steps {
+                script {
+                    // Sestav Docker image
+                    echo "INFO: Building Docker image"
+                    withCredentials([
+                        string(credentialsId: 'POSTGRES_PSW', variable: 'POSTGRES_PASSWORD')
+                    ]) {
+                        sh '''
+                            echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" > .env
+                        '''
+                    }
+                    echo "INFO: Docker image built"
+                }
+            }
+        }
+        
+        stage('Deploy Image') {
+            steps {
+                script {
+                    echo "INFO: Deploying Docker image"
+                    sh "docker-compose up --build"
+                    echo "INFO: Docker image deployed"
+                }
+            }
+        }
+    }
+}

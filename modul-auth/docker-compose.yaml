@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: auth-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres-db:5432/auth
+      CLIENT_REDIRECT_URL: http://uniedu.cz/login
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: http://uniedu.cz:3001/auth/google/callback
+      SESSION_SECRET: ${SESSION_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - internal-network
+
+    command: yarn start
+
+networks:
+  internal-network: # Define the "internal" network
+    name: internal-network
+    driver: bridge # You can specify the driver as needed

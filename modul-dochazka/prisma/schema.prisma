@@ -1,0 +1,150 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+model attendance {
+    attendance_id        Int       @id @unique @default(autoincrement())
+    employee_id          Int
+    employee             employee @relation(fields: [employee_id], references: [employee_id])
+    date                 DateTime
+    payroll              String?
+    vacation_free_days   Int?
+    vacation_taken_days  Int?
+    sickdays             Int?
+    status               String
+    attendance_sheet  attendance_sheet[]
+    created_at           DateTime  @default(now())
+    updated_at           DateTime  @updatedAt @default(now())
+}
+
+model attendance_sheet {
+    attendance_sheet_id  Int       @id @unique @default(autoincrement())
+    attendance_id        Int
+    attendance           attendance @relation(fields: [attendance_id], references: [attendance_id])
+    contract_id          Int
+    contract             contract @relation(fields: [contract_id], references: [contract_id])
+    working_time_fund    Int
+    date                 DateTime
+    created_at           DateTime  @default(now())
+    updated_at           DateTime  @updatedAt @default(now())
+    days                 day[]
+}
+
+model day {
+    day_id               Int       @id @unique @default(autoincrement())
+    attendance_sheet_id  Int
+    attendance_sheet     attendance_sheet @relation(fields: [attendance_sheet_id], references: [attendance_sheet_id])
+    date                 DateTime
+    from                 DateTime?
+    to                   DateTime?
+    note                 String?
+    dayli_criteria      dayli_criteria[]
+    created_at           DateTime  @default(now())
+    updated_at           DateTime  @updatedAt @default(now())
+}
+
+model dayli_criteria {
+    dayli_criteria_id    Int       @id @unique @default(autoincrement())
+    day_id               Int
+    day                  day @relation(fields: [day_id], references: [day_id])
+    criteria_id          Int
+    criteria             criteria @relation(fields: [criteria_id], references: [criteria_id])
+    value                Int?
+    note                 String?
+    hours                Int?
+    created_at           DateTime  @default(now())
+    updated_at           DateTime  @updatedAt @default(now())
+}
+
+model employee {
+    employee_id     Int       @id @unique @default(autoincrement())
+    first_name      String
+    last_name       String
+    email           String    @unique
+    created_at      DateTime  @default(now())
+    updated_at      DateTime  @updatedAt @default(now())
+    attendances     attendance[]
+    contracts       contract[]
+    
+}
+
+model employment_type {
+    employment_type_id  Int       @id @unique @default(autoincrement())
+    name                String
+    description         String?
+    created_at          DateTime  @default(now())
+    updated_at          DateTime  @updatedAt @default(now())
+    contracts           contract[]
+}
+
+model wage_statement {
+    wage_statement_id   Int       @id @unique @default(autoincrement())
+    valid_from          DateTime  @db.Date
+    valid_to            DateTime  @db.Date
+    wage                Int
+    created_at          DateTime  @default(now())
+    updated_at          DateTime  @updatedAt @default(now())
+    contract_id         Int
+    contract            contract @relation(fields: [contract_id], references: [contract_id])
+
+}
+
+model contract {
+    contract_id           Int       @id @unique @default(autoincrement())
+
+    employee_id           Int
+    employee              employee @relation(fields: [employee_id], references: [employee_id])
+   
+    employee_category_id  Int
+    employee_category     employee_category @relation(fields: [employee_category_id], references: [employee_category_id])
+    wage_statements       wage_statement[]
+    employment_type_id    Int
+    employment_type       employment_type @relation(fields: [employment_type_id], references: [employment_type_id])
+    employed_from         DateTime
+    employed_to           DateTime?
+    status                String @default("active")
+    work_percentage       Int
+    created_at            DateTime  @default(now())
+    updated_at            DateTime  @updatedAt @default(now())
+    attendance_sheets     attendance_sheet[]
+    
+}
+
+model employee_category {
+  employee_category_id Int       @id @unique @default(autoincrement())
+  name                   String
+  criteria               criteria[]
+  contracts              contract[]
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt @default(now())
+}
+
+model criteria {
+    criteria_id           Int       @id @unique @default(autoincrement())
+    employee_category_id  Int
+    employee_category     employee_category @relation(fields: [employee_category_id], references: [employee_category_id])
+    dayli_criterias       dayli_criteria[]
+    name                  String
+    description           String?
+    valid_from            DateTime
+    valid_to              DateTime
+    type                  String  @map("")   // once, min, max, hour_rate 
+    value_once            Int?
+    value_min             Int?
+    value_max             Int?
+    hour_rate             Int?
+    created_at            DateTime  @default(now())
+    updated_at            DateTime  @updatedAt @default(now())
+}
+
+enum CriteriaType {
+    ONE_TIME
+    MANUAL_RANGE
+    HOURLY_RATE
+}

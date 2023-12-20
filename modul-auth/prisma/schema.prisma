@@ -1,0 +1,43 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+
+model User {
+  user_id    Int        @id @default(autoincrement())
+  email      String     @unique
+  first_name String?
+  last_name  String?
+  password   String?
+  googleId   String?    @unique
+  roles      UserRole[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  picture    String?
+  admin      Boolean    @default(false)
+  token_issue DateTime?
+}
+
+model Role {
+  role_id   Int        @id @default(autoincrement())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  UserRole  UserRole[]
+}
+
+model UserRole {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [user_id], references: [user_id])
+  role      Role     @relation(fields: [role_id], references: [role_id])
+  user_id   Int
+  role_id   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

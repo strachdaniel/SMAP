@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Inject Credentials') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    withCredentials([
+                        string(credentialsId: 'POSTGRES_PSW', variable: 'POSTGRES_PASSWORD'),
+                        string(credentialsId: 'GOOGLE_CLIENT_ID', variable: 'GOOGLE_CLIENT_ID'),
+                        string(credentialsId: 'GOOGLE_CLIENT_SECRET', variable: 'GOOGLE_CLIENT_SECRET'),
+                        string(credentialsId: 'SESSION_SECRET', variable: 'SESSION_SECRET'),
+                        string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
+                    ]) {
+                        sh '''
+                            echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" > .env
+                            echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
+                            echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
+                            echo "SESSION_SECRET=$SESSION_SECRET" >> .env
+                            echo "JWT_SECRET=$JWT_SECRET" >> .env
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build and Run Docker Compose') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'docker-compose up -d --build'
+
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,71 @@
+version: "3"
+
+services:
+  attendance:
+    build:
+      context: ../modul-dochazka
+    ports:
+      - "3003:3003"
+    expose:
+      - 3003
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/attendance
+    volumes:
+      - ../modul-dochazka:/app
+    networks:
+      backend:
+        aliases:
+          - attendance
+  auth-service:
+    build:
+      context: ../modul-auth
+    ports:
+      - "3001:3001"
+    expose:
+      - 3001
+    environment:
+      DATABASE_URL: postgresql://postgres:9,7Paq8*4HrSG3k2*~@uniedu.cz:5432/auth
+    volumes:
+      - ../modul-auth:/app
+    networks:
+      backend:
+        aliases:
+          - auth
+  # library:
+  # platform: linux/amd64
+  # build:
+  #   context: ../modul-knihovna
+  # ports:
+  #   - "3002:3002"
+  # expose:
+  #   - 3002
+  # environment:
+  #   DATABASE_URL: postgres://postgres:password@db/library
+  # volumes:
+  #   - ../modul-knihovna:/app
+  # networks:
+  #   backend:
+  #     aliases:
+  #       - library
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: my_database
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      backend:
+        aliases:
+          - db
+
+volumes:
+  db_data:
+
+networks:
+  backend:
